@@ -13,6 +13,8 @@ import MainTabNavigator from './MainTabNavigator';
 import ChatDetailScreen from '../screens/ChatDetailScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
 import FilterScreen from '../screens/FilterScreen';
+import CameraScreen from '../screens/CameraScreen';
+import CapturePreviewScreen from '../screens/CapturePreviewScreen';
 
 const Stack = createStackNavigator();
 
@@ -51,6 +53,10 @@ const AppNavigator = () => {
       <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
       <Stack.Screen name="UserDetail" component={UserDetailScreen} />
       <Stack.Screen name="Filters" component={FilterScreen} />
+
+      {/* Camera Flow */}
+      <Stack.Screen name="Camera" component={CameraScreen} />
+      <Stack.Screen name="CapturePreview" component={CapturePreviewScreen} />
     </Stack.Navigator>
   );
 };

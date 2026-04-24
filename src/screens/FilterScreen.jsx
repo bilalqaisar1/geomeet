@@ -134,7 +134,7 @@ const FilterScreen = ({ navigation }) => {
           <Text style={styles.footerText}>Before You Check In</Text>
           <CustomButton 
             title="Take A Quick Photo" 
-            onPress={() => console.log('Camera')}
+            onPress={() => navigation.navigate('Camera')}
             style={styles.ctaButton}
           />
         </View>

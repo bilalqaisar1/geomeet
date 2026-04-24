@@ -1,117 +1,245 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  Image, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   ScrollView,
-  Alert 
+  TouchableOpacity,
+  Alert,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../theme/theme';
-import CustomButton from '../components/CustomButton';
+import { COLORS, SPACING } from '../theme/theme';
 
-const ProfileScreen = () => {
-  const [profileImage, setProfileImage] = useState('https://randomuser.me/api/portraits/men/32.jpg');
-  const [user, setUser] = useState({
-    name: 'Tom Holland',
-    age: 27,
-    bio: 'Actor, lover of golf and taking photos. Just here to meet some cool people nearby!',
-    job: 'Actor'
-  });
+// Profile components
+import ProfileHeader from '../components/profile/ProfileHeader';
+import ProfileMenuItem from '../components/profile/ProfileMenuItem';
+import EditProfileModal from '../components/profile/EditProfileModal';
+import SessionPreferencesModal from '../components/profile/SessionPreferencesModal';
+import PrivacyPolicyModal from '../components/profile/PrivacyPolicyModal';
+import TermsOfUseModal from '../components/profile/TermsOfUseModal';
+import SupportContactModal from '../components/profile/SupportContactModal';
+import NotificationModal from '../components/profile/NotificationModal';
+import LogoutModal from '../components/profile/LogoutModal';
+import DeleteAccountModal from '../components/profile/DeleteAccountModal';
 
-  const handleCamera = () => {
+const ProfileScreen = ({ navigation }) => {
+  // User state
+  const [userName, setUserName] = useState('Sarah Warren');
+  const [avatarUri, setAvatarUri] = useState(
+    'https://randomuser.me/api/portraits/women/44.jpg',
+  );
+
+  // Modal visibility states
+  const [editProfileVisible, setEditProfileVisible] = useState(false);
+  const [sessionPrefsVisible, setSessionPrefsVisible] = useState(false);
+  const [privacyVisible, setPrivacyVisible] = useState(false);
+  const [termsVisible, setTermsVisible] = useState(false);
+  const [supportVisible, setSupportVisible] = useState(false);
+  const [notifVisible, setNotifVisible] = useState(false);
+  const [logoutVisible, setLogoutVisible] = useState(false);
+  const [deleteVisible, setDeleteVisible] = useState(false);
+
+  // Camera handler
+  const handleCameraPress = () => {
     const options = {
       mediaType: 'photo',
       includeBase64: false,
       maxHeight: 2000,
       maxWidth: 2000,
     };
-
     launchCamera(options, (response) => {
       if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        console.log('ImagePicker Error: ', response.errorMessage);
+        return;
+      }
+      if (response.errorCode) {
         Alert.alert('Error', 'Could not open camera');
-      } else {
-        const source = response.assets[0].uri;
-        setProfileImage(source);
+        return;
+      }
+      if (response.assets && response.assets[0]) {
+        setAvatarUri(response.assets[0].uri);
       }
     });
   };
 
-  const handleEditProfile = () => {
-    Alert.alert('Edit Profile', 'This feature is coming soon!');
+  // Edit profile save handler
+  const handleSaveName = (newName) => {
+    if (newName.trim()) {
+      setUserName(newName.trim());
+    }
   };
+
+  // Logout handler
+  const handleLogout = () => {
+    setLogoutVisible(false);
+    if (navigation) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SignIn' }],
+      });
+    }
+  };
+
+  // Delete account handler
+  const handleDeleteAccount = () => {
+    setDeleteVisible(false);
+    Alert.alert(
+      'Account Deleted',
+      'Your account has been permanently deleted.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            if (navigation) {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'SignIn' }],
+              });
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // Location handler
+  const handleLocation = () => {
+    Alert.alert('Location', 'Location settings will be available soon.');
+  };
+
+  // Menu items configuration
+  const menuItems = [
+    {
+      icon: 'sliders',
+      label: 'Update session preferences',
+      subtitle: '(optional)',
+      onPress: () => setSessionPrefsVisible(true),
+    },
+    {
+      icon: 'shield',
+      label: 'Privacy Policy',
+      onPress: () => setPrivacyVisible(true),
+    },
+    {
+      icon: 'file-text',
+      label: 'Terms of Use',
+      onPress: () => setTermsVisible(true),
+    },
+    {
+      icon: 'map-pin',
+      label: 'Location',
+      onPress: handleLocation,
+    },
+    {
+      icon: 'bell',
+      label: 'Notification',
+      onPress: () => setNotifVisible(true),
+    },
+    {
+      icon: 'headphones',
+      label: 'Support / Contact',
+      onPress: () => setSupportVisible(true),
+    },
+    {
+      icon: 'log-out',
+      label: 'Log Out',
+      onPress: () => setLogoutVisible(true),
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+
+      {/* Header with back arrow */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Profile</Text>
-        <TouchableOpacity onPress={handleEditProfile}>
-          <Icon name="edit-3" size={20} color={COLORS.text} />
+        <TouchableOpacity
+          onPress={() => navigation && navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Icon name="arrow-left" size={22} color={COLORS.text} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.profileInfo}>
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: profileImage }} style={styles.image} />
-            <TouchableOpacity style={styles.cameraIcon} onPress={handleCamera}>
-              <Icon name="camera" size={20} color={COLORS.white} />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.name}>{user.name}, {user.age}</Text>
-          <Text style={styles.job}>{user.job}</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+      >
+        {/* Profile Header: Avatar + Name + Edit Profile button */}
+        <ProfileHeader
+          name={userName}
+          username=""
+          avatarUri={avatarUri}
+          onEditProfile={() => setEditProfileVisible(true)}
+          onCameraPress={handleCameraPress}
+          showEditButton={true}
+        />
+
+        {/* Menu Items List */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
+            <ProfileMenuItem
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              subtitle={item.subtitle}
+              onPress={item.onPress}
+              isLast={index === menuItems.length - 1}
+            />
+          ))}
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>124</Text>
-            <Text style={styles.statLabel}>Connections</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>12</Text>
-            <Text style={styles.statLabel}>Nearby</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About Me</Text>
-          <View style={styles.bioContainer}>
-            <Text style={styles.bioText}>{user.bio}</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
-          <TouchableOpacity style={styles.settingItem}>
-            <Icon name="bell" size={20} color={COLORS.gray} />
-            <Text style={styles.settingLabel}>Notifications</Text>
-            <Icon name="chevron-right" size={20} color={COLORS.gray} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingItem}>
-            <Icon name="shield" size={20} color={COLORS.gray} />
-            <Text style={styles.settingLabel}>Privacy & Security</Text>
-            <Icon name="chevron-right" size={20} color={COLORS.gray} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingItem}>
-            <Icon name="help-circle" size={20} color={COLORS.gray} />
-            <Text style={styles.settingLabel}>Help Center</Text>
-            <Icon name="chevron-right" size={20} color={COLORS.gray} />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Log Out</Text>
+        {/* Delete Account Link */}
+        <TouchableOpacity
+          style={styles.deleteAccountButton}
+          onPress={() => setDeleteVisible(true)}
+        >
+          <Text style={styles.deleteAccountText}>Delete Account</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* ===== MODALS ===== */}
+      <EditProfileModal
+        visible={editProfileVisible}
+        onClose={() => setEditProfileVisible(false)}
+        onSave={handleSaveName}
+        currentName={userName}
+      />
+      <SessionPreferencesModal
+        visible={sessionPrefsVisible}
+        onClose={() => setSessionPrefsVisible(false)}
+        onSave={(prefs) => console.log('Session prefs:', prefs)}
+      />
+      <PrivacyPolicyModal
+        visible={privacyVisible}
+        onClose={() => setPrivacyVisible(false)}
+      />
+      <TermsOfUseModal
+        visible={termsVisible}
+        onClose={() => setTermsVisible(false)}
+      />
+      <SupportContactModal
+        visible={supportVisible}
+        onClose={() => setSupportVisible(false)}
+      />
+      <NotificationModal
+        visible={notifVisible}
+        onClose={() => setNotifVisible(false)}
+        onUpdate={(settings) => console.log('Notification settings:', settings)}
+      />
+      <LogoutModal
+        visible={logoutVisible}
+        onClose={() => setLogoutVisible(false)}
+        onLogout={handleLogout}
+      />
+      <DeleteAccountModal
+        visible={deleteVisible}
+        onClose={() => setDeleteVisible(false)}
+        onDelete={handleDeleteAccount}
+      />
     </SafeAreaView>
   );
 };
@@ -123,126 +251,32 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.m,
     paddingVertical: SPACING.m,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  scrollContent: {
-    paddingBottom: SPACING.xl,
-  },
-  profileInfo: {
-    alignItems: 'center',
-    marginTop: SPACING.m,
-  },
-  imageContainer: {
-    position: 'relative',
-    ...SHADOWS.medium,
-  },
-  image: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: COLORS.white,
-  },
-  cameraIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.primary,
+  backButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.white,
   },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: COLORS.text,
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  menuContainer: {
     marginTop: SPACING.m,
+    marginHorizontal: SPACING.s,
   },
-  job: {
-    fontSize: 14,
-    color: COLORS.gray,
-    marginTop: 4,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    marginHorizontal: SPACING.m,
-    marginTop: SPACING.l,
-    borderRadius: 15,
-    paddingVertical: SPACING.m,
-  },
-  statItem: {
-    flex: 1,
+  deleteAccountButton: {
     alignItems: 'center',
+    paddingVertical: SPACING.l,
+    marginTop: SPACING.s,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.gray,
-    marginTop: 2,
-  },
-  divider: {
-    width: 1,
-    backgroundColor: COLORS.border,
-  },
-  section: {
-    paddingHorizontal: SPACING.m,
-    marginTop: SPACING.l,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SPACING.m,
-  },
-  bioContainer: {
-    backgroundColor: COLORS.surface,
-    padding: SPACING.m,
-    borderRadius: 12,
-  },
-  bioText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 20,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.m,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  settingLabel: {
-    flex: 1,
-    marginLeft: SPACING.m,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  logoutButton: {
-    marginTop: SPACING.xl,
-    paddingVertical: SPACING.m,
-    alignItems: 'center',
-  },
-  logoutText: {
-    color: COLORS.error,
-    fontSize: 16,
-    fontWeight: 'bold',
+  deleteAccountText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.secondary,
   },
 });
 
